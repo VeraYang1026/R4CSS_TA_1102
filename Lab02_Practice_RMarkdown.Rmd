@@ -1,6 +1,6 @@
 ---
 title: "Lab02_Practice_RMarkdown"
-author: "你是誰 R10342000 新聞所碩一"
+author: "楊紫希 60988016I 師大大傳"
 date: "2022/02/23"
 output:
   html_document:
@@ -22,23 +22,47 @@ knitr::opts_chunk$set(echo = TRUE, results = 'hold', comment = '#>', error = TRU
 
 請參考網路上的教學，你可以選擇仔細練習每個部份，或是有問題的時候再去查找上面的資源。緊接著就要開始寫第一份作業了，真是令人興奮！
 
-你可以隨時點擊 RStudio 上方的 Knit 按鈕輸出檔案並且預覽，也可以利用
- [Markdown 線上編輯器](https://jbt.github.io/markdown-editor)看你的結果長得如何。
+你可以隨時點擊 RStudio 上方的 Knit 按鈕輸出檔案並且預覽，也可以利用 [Markdown 線上編輯器](https://jbt.github.io/markdown-editor)看你的結果長得如何。
 
 ## 作業: RMarkdown 語法練習
-
 
 ### A. 資料新聞案例舉例
 
 請寫一段自我介紹、一段想用 R 做的事情，並以 Markdown 語法完成。
 
-介紹文必須包含底下者三種元素：字體加深、清單(lists)、連結(links)。此外，請你再額外挑選至少兩種元素，譬如說字體變斜, 插入圖片, 加入引用, etc.  
+介紹文必須包含底下者三種元素：字體加深、清單(lists)、連結(links)。此外，請你再額外挑選至少兩種元素，譬如說字體變斜, 插入圖片, 加入引用, etc.
 
-因為重點是使用 Markdown 語法，因此字數不用多，200字~300字即可，全文段落在 2段~4段間，請練習如何在 Markdown 中分行與分段！
+因為重點是使用 Markdown 語法，因此字數不用多，200字\~300字即可，全文段落在 2段\~4段間，請練習如何在 Markdown 中分行與分段！
 
 請把結果貼在`#### 結果`下方。
- 
+
 #### 結果
+
+# [自我介紹]{style="color:steelblue"}
+
+## 圖片分享
+
+![生活照](images/%E8%87%AA%E6%88%91%E4%BB%8B%E7%B4%B9%E5%9C%96.jpg)
+
+### [About Me]{style="color:steelblue"}
+
+Hi我是**楊紫希**，也可以叫我***Vera***!
+
+* #### [大學時期]{style="color:steelblue"}
+
+擔任[世新廣播電台主持人](https://www.facebook.com/OurRenaissancetime) 透過向聽眾***分享書籍***、內容等自我觀點，建立我在表達、組織觀點時的思考邏輯，也讓我更確定喜歡分享故事的心意，期望有一天，能繼續在喜歡的傳播界裡，投入這份心願。
+
+#### [畢業選組]{style="color:steelblue"}
+
+選擇了**論文組** 我發現透過縝密的研究方法與邏輯論證的辯論，能讓我理出更嚴謹的思考方式；而我作為偕同研究者的身分，更讓我得以思考以及批判社會現象。
+
+#### [大學畢業後]{style="color:steelblue"}
+
+選擇**繼續念研究所**，接受更嚴謹的學術訓練，才能更完整地去**學習問題意識的開展**、**採訪寫作的技能**與**媒體生態的反思**等。
+
+### [為什麼想學Ｒ]{style="color:steelblue"}
+
+一方面是想增加技能（誤）
 
 ### B. R code chunk 練習
 
@@ -47,8 +71,7 @@ knitr::opts_chunk$set(echo = TRUE, results = 'hold', comment = '#>', error = TRU
 如先前所提，Rmarkdown 當中可以插入 code chunk，請參考 [RStudio 的教學](https://rmarkdown.rstudio.com/lesson-3.html)，在底下插入一段 code chunk，並在當中計算 `1+1` 的答案並將結果列印出來。
 
 #### B.02
-- 請解釋 chunk header 中參數 include = FALSE 會有什麼後果，並在底下加一段 include = FALSE 的 code chunk，一樣在裡面計算 `1+1` 的答案。
 
-- 請解釋 chunk header 中參數 echo = FALSE 會有什麼後果，並在底下加一段 echo = FALSE 的 code chunk，一樣在裡面計算 `1+1` 的答案。
+-   請解釋 chunk header 中參數 include = FALSE 會有什麼後果，並在底下加一段 include = FALSE 的 code chunk，一樣在裡面計算 `1+1` 的答案。
 
-
+-   請解釋 chunk header 中參數 echo = FALSE 會有什麼後果，並在底下加一段 echo = FALSE 的 code chunk，一樣在裡面計算 `1+1` 的答案。

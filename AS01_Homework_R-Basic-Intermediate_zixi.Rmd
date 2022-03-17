@@ -166,20 +166,17 @@ unique(df_macp$name)
 ### your code
 vector_shop <- c("Barkers美式餐廳", "親來食堂", "李記水餃", "憶馬當鮮", "穰穰",
                  "五九麵館", "大李水餃", "林師傅", "馬祖麵館", "師大第一腿")
-
-for (i in vector_shop) {
-  if (vector_shop[i] == vector_shop[c("林師傅")] {
-    print("小軒吃林師傅")
+for (i in (vector_shop)) {
+  if (i == "林師傅" | i == "馬祖麵館" | i == "大李水餃" | i == "李記水餃" | i == "Barkers美式餐廳") {
+    print(paste("小軒吃", i))
   } else {
-    print("小軒不吃五九麵館")
+    print(paste("小軒不吃", i))
   }
-  print(i)
-}
 
 
 
-for (i in vector_shop) {
-  print(i)
+
+  
 }
 ```
 
