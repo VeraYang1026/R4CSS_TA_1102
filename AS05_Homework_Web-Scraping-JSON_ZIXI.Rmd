@@ -1,0 +1,236 @@
+---
+title: "AS05_Homework_Web-Scraping-JSON"
+author: "楊紫希 60988016I 師大大傳"
+date: "2022/04/28"
+output:
+  html_document:
+    number_sections: no
+    theme: united
+    highlight: tango
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = 'hold', comment = '#>', error = TRUE)
+library(tidyverse)
+library(httr)
+library(jsonlite)
+options(stringsAsFactors = F)
+```
+
+## 作業目的
+
+這份作業希望能夠讓你熟悉 Web Scraping 的流程，這週的重點會著重在 JSON。
+
+## A. scrape 104 & compare salary（50分）
+
+接續老師錄製的影片，請到 [104 人力銀行](https://www.104.com.tw/jobs/main/)，爬取「軟體工程」和「資料科學」兩種職業的搜尋結果，扣除面議的薪資不計，繪製圖表比較這 2 種職業的薪資差異，請自行思考適合的圖表類型與指標。
+
+你的程式碼應該包含 3 個部分：爬資料、清理資料如薪資與年資等欄位、視覺化，有些流程可能需要借助你的主觀判斷，請盡量搭配文字適度解釋你處理資料的過程。另外，建議你爬好資料之後，可以自行創建並存取在 `data/AS05/` 資料夾當中，以免每次 knit 都要重爬。
+
+```{r message=FALSE, warning=FALSE}
+### your code
+####抓資料
+refer_softurl <- "https://www.104.com.tw/jobs/search/?keyword=%E8%BB%9F%E9%AB%94%E5%B7%A5%E7%A8%8B&order=1&jobsource=2018indexpoc&ro=0"
+soft_url <- "https://www.104.com.tw/jobs/search/list?ro=0&kwop=7&keyword=%E8%BB%9F%E9%AB%94%E5%B7%A5%E7%A8%8B&expansionType=area%2Cspec%2Ccom%2Cjob%2Cwf%2Cwktm&order=12&asc=0&page=2&mode=s&jobsource=2018indexpoc&langFlag=0&langStatus=0&recommendJob=1&hotJob=1"
+
+res_soft <- GET(soft_url, add_headers("referer"=refer_softurl)) %>%
+            content("text") %>%
+            fromJSON()
+
+soft.df <- res_soft$data$list
+
+#save(soft.df, file='soft.df.rda')
+
+data_url <- "https://www.104.com.tw/jobs/search/list?ro=0&kwop=7&keyword=%E8%B3%87%E6%96%99%E7%A7%91%E5%AD%B8&expansionType=area%2Cspec%2Ccom%2Cjob%2Cwf%2Cwktm&order=12&asc=0&page=2&mode=s&jobsource=2018indexpoc&langFlag=0&langStatus=0&recommendJob=1&hotJob=1"
+
+refer_dataurl <- "https://www.104.com.tw/jobs/search/?keyword=%E8%B3%87%E6%96%99%E7%A7%91%E5%AD%B8&order=1&jobsource=2018indexpoc&ro=0"
+
+res_data <- GET(data_url, add_headers("referer"=refer_dataurl)) %>%
+            content("text") %>%
+            fromJSON()
+
+data.df <- res_data$data$list
+
+#save(data.df, file='data.df.rda')
+
+####清理資料
+soft.df <-  soft.df %>%
+    select(jobName,salaryLow,salaryHigh) 
+
+ data.df <- data.df %>%
+  select(jobName,salaryLow,salaryHigh) 
+
+
+all.df <- full_join(soft.df,data.df) %>%
+   mutate(`最低薪資` = as.numeric(`salaryLow`),
+               `最高薪資` = as.numeric(`salaryHigh`)) %>%
+   select(-(2:3)) %>%
+   filter(`最低薪資` > 0 & `最高薪資` >0) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "iOS")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, " ")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, " ")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "AI")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "3D")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "DataScientist")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "	【產品處】AI工程師/")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "/機器學習工程師(可遠端作業)")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "	DataScientist/")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "(DataScientist)")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "DataScientist/")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "_11060")) %>%
+   mutate(`jobName` = str_remove_all(`jobName`, "/")) %>%
+  filter(`jobName` == "軟體工程師" | `jobName` == "資料科學家") %>%
+   group_by(`jobName`) %>%
+   summarise(`平均最低薪資` = mean(`最低薪資`),
+             `平均最高薪資` = mean(`最高薪資`)) %>%
+   ungroup()  %>%
+   pivot_longer(cols = -jobName, names_to = "薪資", values_to = "value")
+
+all.df %>%
+  ggplot(aes(x = `jobName`,  y = `value`)) +
+  geom_boxplot() + # 箱形圖
+  xlab("職業") +   # X 軸標示文字
+  ylab("薪資") +  # Y 軸標示文字
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), 
+         panel.grid.minor = element_blank()) +
+    labs(title = '軟體工程與資料科學的薪資差異', x = "薪資", y = "職業") +
+    theme(text=element_text(family="黑體-繁 中黑"),
+    axis.text.x = element_text(angle = 45, vjust = 0.5),     
+    plot.title = element_text(hjust = 0.5))
+  
+
+
+```
+
+## B. scrape google trend（50分）
+
+### (1) scraping（30分）
+
+請到 [Google 每日搜尋趨勢](https://trends.google.com.tw/trends/trendingsearches/daily?geo=TW)，以**抓取 JSON 的方式**，爬下最近一週的搜尋趨勢結果，這裡的一週沒有規定具體日期，從你做作業當天為基礎即可。這題一樣建議你爬好資料之後，可以自行創建並存取在 `data/AS05/` 資料夾當中，以免每次 knit 都要重爬。
+
+結果部分請加入**日期**欄位，先印出前 10 個列，接著印出各個日期的筆數（參考程式碼：```df %>% count(date)```）。
+
+提示：
+a. API url 的長相類似這樣 - "https://trends.google.com.tw/trends/api/"，後面還有東西，可以去找一下      
+b. 可以用迴圈寫，並且在迴圈中更新 API url 的日期    
+c. 直接用 `fromJSON()` 會出事，因為 Google 很壞，它故意在結果的前 5 個字塞入不相干的東西阻礙你，建議你可以用 `str_sub()` 抓取正確的字串再轉換成 JSON
+
+```{r message=FALSE, warning=FALSE}
+### your code
+google.df <- tibble()
+
+google_url <- "https://trends.google.com.tw/trends/api/dailytrends?hl=zh-TW&tz=-480&ed=20220501&geo=TW&ns=15"
+
+
+#google <- GET(google_url) %>%content("text") %>%fromJSON()
+
+
+for(p in 20220423:20220430){
+   google_url <- str_c("https://trends.google.com.tw/trends/api/dailytrends?hl=zh-TW&tz=-480&ed=",
+                        p,
+                        "&geo=TW&ns=15")
+  print(p)
+  
+  res_google <-  GET(google_url,add_headers("Referer"=google_url)) %>%
+      content("text") %>%
+      str_sub(6)%>%
+      fromJSON()
+google.res <- res_google$default$trendingSearchesDays$trendingSearches
+
+
+}
+
+# unlist data structure to a list
+google.res <- unlist(google.res)
+head(google.res)
+
+# anyNA() to check if NAs still exist
+anyNA(google.res)
+
+# (option) check if NAs exist
+sum(is.na(google.res))
+
+# remove NAs
+google.res<- google.res[!is.na(google.res)]
+# length(safefood.v)
+
+# double-check NAs
+anyNA(google.res)
+head(google.res)
+
+
+# convert vector to matrix
+google.m <- matrix(google.res, byrow = T, ncol = 6)
+# ?matrix
+
+# convert matrix to dataframe
+google.res.df <- as.data.frame(google.m)
+
+
+
+
+
+
+### result 01
+#> # A tibble: 10 × 7
+#>    title$query    $exploreLink    formattedTraffic relatedQueries image$newsUrl 
+#>    <chr>          <chr>           <chr>            <list>         <chr>         
+#>  1 取消實聯制     /trends/explor… 20萬+            <df [17 × 2]>  https://www.e…
+#>  2 推特           /trends/explor… 5萬+             <df [5 × 2]>   https://www.c…
+#>  3 軟性封城       /trends/explor… 2萬+             <df [3 × 2]>   https://www.e…
+#>  4 實聯制         /trends/explor… 2萬+             <df [0 × 0]>   https://udn.c…
+#>  5 林襄           /trends/explor… 2萬+             <df [1 × 2]>   https://tw.ne…
+#>  6 確診者隔離天數 /trends/explor… 1萬+             <df [1 × 2]>   https://www.e…
+#>  7 桂冠出版社     /trends/explor… 1萬+             <df [0 × 0]>   https://tw.ne…
+#>  8 台南市衛生局   /trends/explor… 1萬+             <df [1 × 2]>   https://udn.c…
+#>  9 籃網           /trends/explor… 5000+            <df [0 × 0]>   https://udn.c…
+#> 10 蔡京京         /trends/explor… 5000+            <df [0 × 0]>   https://www.e…
+#> # … with 3 more variables: articles <list>, shareUrl <chr>, date <dbl>
+#> 
+
+### result 02
+#> # A tibble: 7 × 2
+#>       date     n
+#>      <dbl> <int>
+#> 1 20220421    17
+#> 2 20220422    20
+#> 3 20220423    20
+#> 4 20220424    20
+#> 5 20220425    20
+#> 6 20220426    20
+#> 7 20220427    20
+```
+
+### (2) cleaning（20分）
+
+這個資料的原始結構有點複雜，請嘗試列出 `id`, `date`, `query`, `formattedTraffic`, `title`, `source`, `url`, `snippet` 等欄位。其中，`id` 和 `date` 是自行加入的欄位，其他都是上一小題就能抓到的結果。這題比較難，所以配分低一些。
+
+提示：
+a. `id`: 可以利用 `mutate(id = row_number())`    
+b. 原始的 dataframe 不是一般常見的 dataframe，有些 column 本身是 list，又被稱為 nested dataframe，處理起來很麻煩，建議可以用 `$`   
+c. 會用到 2 次 `left_join()`   
+
+```{r message=FALSE, warning=FALSE}
+### your code
+
+### result
+#> # A tibble: 863 × 8
+#>    id        date query  formattedTraffic title     source  url       snippet   
+#>    <chr>    <dbl> <chr>  <chr>            <chr>     <chr>   <chr>     <chr>     
+#>  1 21    20220427 食藥署 10萬+            快篩實名… ETtoday https://… 指揮中心… 
+#>  2 21    20220427 食藥署 10萬+            家用快篩… ELLE …  https://… 在本土Cov…
+#>  3 21    20220427 食藥署 10萬+            懶人包／… udn 元… https://… 本土疫情… 
+#>  4 21    20220427 食藥署 10萬+            COVID-19… Heho健… https://… 因應確診… 
+#>  5 21    20220427 食藥署 10萬+            懶人包／… Yahoo…  https://… 三、販售… 
+#>  6 21    20220427 食藥署 10萬+            黑髮漂色… 健康醫… https://… 東方人的… 
+#>  7 21    20220427 食藥署 10萬+            快篩實名… 遠見雜… https://… 指揮中心… 
+#>  8 22    20220427 陳昱瑋 10萬+            勾惡「陳… 台灣蘋… https://… 網紅連千… 
+#>  9 22    20220427 陳昱瑋 10萬+            勾惡幫主… ETtoda… https://… YouTube頻…
+#> 10 22    20220427 陳昱瑋 10萬+            遭連千毅… 三立新… https://… 網紅直播… 
+#> # … with 853 more rows
+```
